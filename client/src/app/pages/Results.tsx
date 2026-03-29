@@ -15,7 +15,6 @@ import {
 } from "../components/ui/dialog";
 import {
   getQualifiedBenefits,
-  getLocationsByZip,
   type Benefit,
   type Location,
 } from "../data/benefits";
@@ -33,6 +32,8 @@ export function Results() {
   const [qualifiedBenefits, setQualifiedBenefits] = useState<Benefit[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedBenefitId, setSelectedBenefitId] = useState<string | undefined>();
+  const [loading, setLoading] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([37.7749, -122.4194]);
 
   useEffect(() => {
     const dataStr = sessionStorage.getItem("vetNavData");
@@ -51,9 +52,30 @@ export function Results() {
     );
     setQualifiedBenefits(benefits);
 
-    // Get locations
-    const locs = getLocationsByZip(data.zipCode);
-    setLocations(locs);
+    // Fetch real VA facilities from backend
+    setLoading(true);
+    fetch(`/api/facilities?zip=${data.zipCode}&radius=50`)
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.facilities) {
+          setMapCenter([result.lat, result.lng]);
+          const locs: Location[] = result.facilities.map((f: any) => ({
+            id: f.id,
+            name: f.name,
+            address: f.address || "Address unavailable",
+            lat: f.lat,
+            lng: f.lng,
+            phone: f.phone,
+            type: "va" as const,
+            benefitTypes: ["healthcare", "disability"],
+            description: f.facilityType || undefined,
+          }));
+          setLocations(locs);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch facilities:", err))
+      .finally(() => setLoading(false));
+
   }, [navigate]);
 
   const handleShowLocations = (benefitId: string) => {
@@ -80,7 +102,6 @@ export function Results() {
               <ArrowLeft className="w-5 h-5 mr-1 md:mr-2" />
               Back
             </Button>
-            {/* Patriotic Shield */}
             <div className="relative w-8 h-8 md:w-10 md:h-10">
               <svg viewBox="0 0 24 24" className="w-full h-full">
                 <path
@@ -90,10 +111,16 @@ export function Results() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-white" style={{ fontFamily: "'Times New Roman', serif" }}>
+              <h1
+                className="text-xl md:text-2xl font-bold text-white"
+                style={{ fontFamily: "'Times New Roman', serif" }}
+              >
                 Your Benefits
               </h1>
-              <p className="text-xs md:text-base text-white" style={{ fontFamily: "'Times New Roman', serif" }}>
+              <p
+                className="text-xs md:text-base text-white"
+                style={{ fontFamily: "'Times New Roman', serif" }}
+              >
                 Based on your service record
               </p>
             </div>
@@ -116,24 +143,36 @@ export function Results() {
                   You Are Not Alone
                 </DialogTitle>
                 <DialogDescription className="text-lg text-slate-700 pt-4">
-                  If you're a veteran in crisis or concerned about one, reach out to the resources below. Many of the responders are qualified and are veterans themselves.:
+                  If you're a veteran in crisis or concerned about one, reach
+                  out to the resources below. Many of the responders are
+                  qualified and are veterans themselves.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-6 pt-4">
                 <div className="bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
-                  <p className="text-lg font-bold text-slate-900 mb-2">Text for Support</p>
+                  <p className="text-lg font-bold text-slate-900 mb-2">
+                    Text for Support
+                  </p>
                   <p className="text-2xl font-bold text-blue-600">838255</p>
-                  <p className="text-sm text-slate-600 mt-1">Connect to a trained counselor</p>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Connect to a trained counselor
+                  </p>
                 </div>
-                
                 <div className="bg-red-50 p-6 rounded-xl border-2 border-red-200">
-                  <p className="text-lg font-bold text-slate-900 mb-2">Call for Help</p>
-                  <p className="text-2xl font-bold text-red-600">988 then press 1</p>
-                  <p className="text-sm text-slate-600 mt-1">Veterans Crisis Line</p>
+                  <p className="text-lg font-bold text-slate-900 mb-2">
+                    Call for Help
+                  </p>
+                  <p className="text-2xl font-bold text-red-600">
+                    988 then press 1
+                  </p>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Veterans Crisis Line
+                  </p>
                 </div>
-                
                 <div className="bg-slate-50 p-6 rounded-xl border-2 border-slate-200">
-                  <p className="text-lg font-bold text-slate-900 mb-2">More Resources</p>
+                  <p className="text-lg font-bold text-slate-900 mb-2">
+                    More Resources
+                  </p>
                   <a
                     href="https://www.veteranscrisisline.net"
                     target="_blank"
@@ -143,7 +182,6 @@ export function Results() {
                     veteranscrisisline.net
                   </a>
                 </div>
-                
                 <p className="text-center text-slate-600 italic">
                   Help is available 24/7, 365 days a year.
                 </p>
@@ -181,41 +219,55 @@ export function Results() {
               ) : (
                 <div className="bg-white rounded-xl p-8 text-center shadow-md">
                   <p className="text-xl text-slate-600">
-                    No benefits match your current criteria. Please contact a VA
-                    representative for more information.
+                    No benefits match your current criteria. Please contact a
+                    VA representative for more information.
                   </p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Map Section */}
-          <div className="lg:sticky lg:top-8 h-[500px] lg:h-[calc(100vh-6rem)]">
-            <div className="bg-white rounded-xl p-4 shadow-md h-full flex flex-col">
-              <div className="mb-4">
-                <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2">
-                  Nearby Locations
-                </h2>
-                <p className="text-base lg:text-lg text-slate-600">
-                  {selectedBenefitId
-                    ? "Showing locations for selected benefit"
-                    : "All VA facilities in your area"}
-                </p>
-              </div>
-              <div className="flex-1 min-h-0">
-                <LocationMap
-                  locations={locations}
-                  center={[37.7749, -122.4194]}
-                  selectedBenefitId={selectedBenefitId}
-                />
-              </div>
+
+          {/* Facilities Section */}
+          <div className="lg:sticky lg:top-8">
+            <div className="bg-white rounded-xl p-6 shadow-md">
+              <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2">
+                Nearby VA Facilities
+              </h2>
+              <p className="text-base lg:text-lg text-slate-600 mb-6">
+                {loading
+                  ? "Finding VA facilities near you..."
+                  : `${locations.length} facilities found in your area`}
+              </p>
+
+              {loading ? (
+                <p className="text-slate-500 text-lg">Searching...</p>
+              ) : locations.length === 0 ? (
+                <p className="text-slate-500 text-lg">No facilities found for your area.</p>
+              ) : (
+                <div className="space-y-4">
+                  {locations.map((facility) => (
+                    <div key={facility.id} className="border-2 border-slate-200 rounded-xl p-4 space-y-1">
+                      <p className="text-lg font-bold text-slate-900">{facility.name}</p>
+                      {facility.address && (
+                        <p className="text-slate-600"><span className="font-semibold">Address:</span> {facility.address}</p>
+                      )}
+                      {facility.phone && (
+                        <p className="text-slate-600"><span className="font-semibold">Phone:</span> {facility.phone}</p>
+                      )}
+                      {facility.description && (
+                        <p className="text-slate-500 text-sm italic">{facility.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Help Section */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Contact Help */}
           <div className="bg-white rounded-xl p-6 shadow-md">
             <div className="flex items-start gap-4">
               <Phone className="w-10 h-10 text-blue-600 flex-shrink-0 mt-1" />
@@ -236,7 +288,6 @@ export function Results() {
             </div>
           </div>
 
-          {/* Secure Badge */}
           <div className="bg-blue-50 rounded-xl p-6 shadow-md border-2 border-blue-100">
             <div className="flex items-start gap-4">
               <Shield className="w-10 h-10 text-blue-600 flex-shrink-0 mt-1" />
@@ -245,8 +296,8 @@ export function Results() {
                   Your Privacy Matters
                 </h3>
                 <p className="text-lg text-slate-600">
-                  Your information is used only to find benefits. We don't store 
-                  or share your personal data.
+                  Your information is used only to find benefits. We don't
+                  store or share your personal data.
                 </p>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import type { Location } from "../data/benefits";
 import "leaflet/dist/leaflet.css";
@@ -11,6 +11,17 @@ const defaultIcon = L.icon({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+// Custom icon for employment locations
+const employmentIcon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [30, 49],
+  iconAnchor: [15, 49],
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 });
@@ -53,9 +64,22 @@ export function LocationMap({
     ? locations.filter((loc) => loc.benefitTypes.includes(selectedBenefitId))
     : locations;
 
+  // Don't render map if no locations
+  if (!filteredLocations || filteredLocations.length === 0) {
+    return (
+      <div className="h-full w-full rounded-xl overflow-hidden shadow-lg border-2 border-slate-200 flex items-center justify-center bg-slate-100">
+        <p className="text-slate-600 text-lg">No locations to display</p>
+      </div>
+    );
+  }
+
+  // Create a unique key based on center coordinates to force re-render when location changes
+  const mapKey = `${center[0]}-${center[1]}`;
+
   return (
     <div className="h-full w-full rounded-xl overflow-hidden shadow-lg border-2 border-slate-200">
       <MapContainer
+        key={mapKey}
         center={center}
         zoom={11}
         className="h-full w-full"
@@ -67,13 +91,24 @@ export function LocationMap({
         />
         <MapUpdater center={center} locations={filteredLocations} />
         {filteredLocations.map((location) => (
-          <Marker key={location.id} position={[location.lat, location.lng]}>
+          <Marker
+            key={location.id}
+            position={[location.lat, location.lng]}
+            icon={location.type === "employment" ? employmentIcon : defaultIcon}
+          >
             <Popup>
               <div className="p-2">
                 <h3 className="font-bold text-lg mb-1">{location.name}</h3>
+                {location.description && (
+                  <p className="text-sm text-slate-700 mb-2 italic">
+                    {location.description}
+                  </p>
+                )}
                 <p className="text-sm text-slate-600 mb-1">{location.address}</p>
                 {location.phone && (
-                  <p className="text-sm text-blue-600">{location.phone}</p>
+                  <p className="text-sm text-blue-600 font-semibold">
+                    {location.phone}
+                  </p>
                 )}
               </div>
             </Popup>

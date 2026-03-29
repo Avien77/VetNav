@@ -18,6 +18,8 @@ export interface Location {
   lng: number;
   benefitTypes: string[];
   phone?: string;
+  type?: "va" | "employment" | "education" | "general";
+  description?: string;
 }
 
 export const allBenefits: Benefit[] = [
@@ -83,6 +85,7 @@ export const getLocationsByZip = (zipCode: string): Location[] => {
       lng: -122.4194,
       benefitTypes: ["healthcare", "disability", "vocational"],
       phone: "(555) 123-4567",
+      type: "va",
     },
     {
       id: "va-clinic-1",
@@ -92,6 +95,7 @@ export const getLocationsByZip = (zipCode: string): Location[] => {
       lng: -122.4094,
       benefitTypes: ["healthcare"],
       phone: "(555) 234-5678",
+      type: "va",
     },
     {
       id: "edu-center",
@@ -101,6 +105,7 @@ export const getLocationsByZip = (zipCode: string): Location[] => {
       lng: -122.4294,
       benefitTypes: ["gi-bill", "vocational"],
       phone: "(555) 345-6789",
+      type: "education",
     },
     {
       id: "benefit-office",
@@ -110,10 +115,101 @@ export const getLocationsByZip = (zipCode: string): Location[] => {
       lng: -122.3994,
       benefitTypes: ["disability", "home-loan", "gi-bill"],
       phone: "(555) 456-7890",
+      type: "va",
     },
   ];
 
   return baseLocations;
+};
+
+// Get employment-specific resources by zip code
+export const getEmploymentLocationsByZip = (zipCode: string, branch?: string): Location[] => {
+  // Mock employment resources - in real app, would query a database
+  const employmentLocations: Location[] = [
+    {
+      id: "vet-employment-1",
+      name: "Veterans Employment Center",
+      address: "100 Career Path Dr",
+      lat: 37.7699,
+      lng: -122.4144,
+      benefitTypes: ["employment"],
+      phone: "(555) 600-1000",
+      type: "employment",
+      description: "Resume building, interview prep, job placement assistance",
+    },
+    {
+      id: "american-job-center-1",
+      name: "American Job Center",
+      address: "250 Opportunity Blvd",
+      lat: 37.7799,
+      lng: -122.4244,
+      benefitTypes: ["employment"],
+      phone: "(555) 600-2000",
+      type: "employment",
+      description: "Career counseling, training programs, job search resources",
+    },
+    {
+      id: "hire-heroes-1",
+      name: "Hire Heroes USA Office",
+      address: "500 Service Ave",
+      lat: 37.7599,
+      lng: -122.4044,
+      benefitTypes: ["employment"],
+      phone: "(555) 600-3000",
+      type: "employment",
+      description: "Free career mentoring and job placement for veterans",
+    },
+    {
+      id: "skillbridge-1",
+      name: "SkillBridge Partner Hub",
+      address: "75 Transition Way",
+      lat: 37.7899,
+      lng: -122.4344,
+      benefitTypes: ["employment"],
+      phone: "(555) 600-4000",
+      type: "employment",
+      description: "Civilian work experience for transitioning service members",
+    },
+    {
+      id: "voc-rehab-1",
+      name: "VA Vocational Rehab & Employment",
+      address: "123 Veterans Way (Building 2)",
+      lat: 37.7749,
+      lng: -122.4194,
+      benefitTypes: ["employment", "vocational"],
+      phone: "(555) 600-5000",
+      type: "va",
+      description: "Career training for veterans with service-connected disabilities",
+    },
+    {
+      id: "workforce-dev-1",
+      name: "Veterans Workforce Development Center",
+      address: "425 Career St",
+      lat: 37.7549,
+      lng: -122.3994,
+      benefitTypes: ["employment"],
+      phone: "(555) 600-6000",
+      type: "employment",
+      description: "Skills training, certifications, apprenticeship programs",
+    },
+  ];
+
+  // If branch is provided, could add branch-specific resources
+  if (branch === "coast-guard") {
+    employmentLocations.push({
+      id: "coast-guard-transition",
+      name: "Coast Guard Career Assistance Advisor",
+      address: "800 Maritime Blvd",
+      lat: 37.7449,
+      lng: -122.4394,
+      benefitTypes: ["employment"],
+      phone: "(555) 600-7000",
+      type: "employment",
+      description: "Coast Guard-specific transition support and employer connections",
+    });
+  }
+
+  return employmentLocations;
 };
 
 export const getQualifiedBenefits = (

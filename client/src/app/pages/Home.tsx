@@ -47,8 +47,78 @@ export function Home() {
   const [zipCode, setZipCode] = useState("");
   const [benefitCategory, setBenefitCategory] = useState("");
 
+  // Benefit information with descriptions and URLs
+  const benefitInfo: Record<string, { title: string; description: string; url?: string }> = {
+    burial: {
+      title: "Burial & Memorial Benefits",
+      description: "The VA helps cover burial costs and provides services like gravesites in national cemeteries, headstones, and memorial certificates. These benefits are meant to honor veterans and support their families during a difficult time.",
+      url: "https://www.va.gov/burials-memorials/eligibility/"
+    },
+    housing: {
+      title: "VA Home Loans",
+      description: "VA home loans help veterans buy, build, or refinance a home with better terms than most traditional loans. Many veterans qualify for no down payment, lower interest rates, and no private mortgage insurance (PMI). These loans are backed by the VA but provided through private lenders.",
+      url: "https://www.va.gov/health-care/apply-for-health-care-form-10-10ez/introduction"
+    },
+    disability: {
+      title: "Disability Compensation",
+      description: "This is a monthly, tax-free payment for veterans with injuries or conditions connected to their military service. The amount you receive depends on your disability rating (0%–100%). It's meant to help support your health and daily life if your condition affects your ability to work or function normally."
+    },
+    education: {
+      title: "GI Bill / Education Benefits",
+      description: "The GI Bill helps pay for college, trade school, and other training programs. It can cover tuition, provide a monthly housing allowance, and help with books and supplies. Many veterans can use these benefits themselves or transfer them to family members, depending on their service."
+    },
+    healthcare: {
+      title: "VA Healthcare",
+      description: "The VA provides medical care for veterans, including doctor visits, hospital services, mental health support, and prescriptions. Depending on your service history and disability rating, you may qualify for free or low-cost care at VA hospitals and clinics. Enrollment priority is often higher for veterans with service-related conditions."
+    },
+    employment: {
+      title: "Veteran Employment Services",
+      description: "The VA and partner programs offer help finding jobs, building resumes, and transitioning to civilian careers. This includes career counseling, job training programs, and opportunities like SkillBridge, which connects service members with civilian work experience before leaving active duty."
+    },
+    pension: {
+      title: "Pension (Veterans Pension Program)",
+      description: "This is a monthly payment for low-income wartime veterans who meet certain age or disability requirements. It's designed to help cover basic living expenses if you have limited income and assets. Additional support may be available if you need help with daily activities.",
+      url: "https://www.va.gov/pension/apply-for-veteran-pension-form-21p-527ez/introduction"
+    },
+    family: {
+      title: "Caregiver Support",
+      description: "If a veteran needs help with daily living, the VA offers programs to support family members or caregivers. This can include training, financial assistance, and access to healthcare resources to make caregiving easier and more sustainable.",
+      url: "https://www.va.gov/family-and-caregiver-benefits/"
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if this benefit category has an external URL
+    const selectedBenefitInfo = benefitInfo[benefitCategory];
+    if (selectedBenefitInfo && selectedBenefitInfo.url) {
+      // Redirect to external URL
+      window.open(selectedBenefitInfo.url, "_blank");
+      return;
+    }
+    
+    // Navigate to employment page if employment is selected
+    if (benefitCategory === "employment") {
+      // Store veteran info for employment page
+      sessionStorage.setItem(
+        "vetNavData",
+        JSON.stringify({
+          branch,
+          rank,
+          yearsServed: parseInt(yearsServed) || 0,
+          isActiveDuty,
+          separationDate: isActiveDuty ? `${separationYear}-${separationMonth}-${separationDay}` : null,
+          enlistmentDate: !isActiveDuty ? `${enlistmentYear}-${enlistmentMonth}` : null,
+          dischargeDate: !isActiveDuty ? `${dischargeYear}-${dischargeMonth}` : null,
+          disabilityRating: hasDisability ? disabilityRating[0] : 0,
+          zipCode,
+          benefitCategory,
+        })
+      );
+      navigate("/employment");
+      return;
+    }
     
     // Store data in session storage to pass to results page
     sessionStorage.setItem(
@@ -213,44 +283,44 @@ export function Home() {
                 style={{ fontFamily: "'Times New Roman', serif" }}
               >
                 <Phone className="w-5 h-5 mr-2" />
-                Crisis Line
+                In Need of Help?
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl md:text-3xl font-bold text-slate-900">
+                <DialogTitle className="text-3xl md:text-4xl font-bold text-slate-900 font-sans">
                   You Are Not Alone
                 </DialogTitle>
-                <DialogDescription className="text-lg text-slate-700 pt-4">
+                <DialogDescription className="text-xl text-slate-700 pt-4 font-sans">
                   If you're a veteran in crisis or concerned about one, reach out to the resources below:
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-6 pt-4">
-                <div className="bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
-                  <p className="text-lg font-bold text-slate-900 mb-2">Text for Support</p>
-                  <p className="text-2xl font-bold text-blue-600">838255</p>
-                  <p className="text-sm text-slate-600 mt-1">Connect to a trained counselor</p>
+                <div className="bg-blue-50 p-8 rounded-xl border-2 border-blue-200">
+                  <p className="text-xl font-bold text-slate-900 mb-3 font-sans">Text for Support</p>
+                  <p className="text-3xl font-bold text-blue-600 font-sans">838255</p>
+                  <p className="text-base text-slate-600 mt-2 font-sans">Connect to a trained counselor</p>
                 </div>
                 
-                <div className="bg-red-50 p-6 rounded-xl border-2 border-red-200">
-                  <p className="text-lg font-bold text-slate-900 mb-2">Call for Help</p>
-                  <p className="text-2xl font-bold text-red-600">988 then press 1</p>
-                  <p className="text-sm text-slate-600 mt-1">Veterans Crisis Line</p>
+                <div className="bg-red-50 p-8 rounded-xl border-2 border-red-200">
+                  <p className="text-xl font-bold text-slate-900 mb-3 font-sans">Call for Help</p>
+                  <p className="text-3xl font-bold text-red-600 font-sans">988 then press 1</p>
+                  <p className="text-base text-slate-600 mt-2 font-sans">Veterans Crisis Line</p>
                 </div>
                 
-                <div className="bg-slate-50 p-6 rounded-xl border-2 border-slate-200">
-                  <p className="text-lg font-bold text-slate-900 mb-2">More Resources</p>
+                <div className="bg-slate-50 p-8 rounded-xl border-2 border-slate-200">
+                  <p className="text-xl font-bold text-slate-900 mb-3 font-sans">More Resources</p>
                   <a
                     href="https://www.veteranscrisisline.net"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-lg text-blue-600 hover:text-blue-800 underline font-semibold"
+                    className="text-xl text-blue-600 hover:text-blue-800 underline font-semibold font-sans"
                   >
                     veteranscrisisline.net
                   </a>
                 </div>
                 
-                <p className="text-center text-slate-600 italic">
+                <p className="text-center text-lg text-slate-600 italic font-sans">
                   Help is available 24/7, 365 days a year.
                 </p>
               </div>
@@ -264,9 +334,9 @@ export function Home() {
         {/* Hero Image Section */}
         <div className="mb-8 rounded-2xl overflow-hidden shadow-lg">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1535738754398-da14b0594de3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxBbWVyaWNhbiUyMGZsYWclMjB3YXZpbmd8ZW58MXx8fHwxNzc0NzE1MzQ5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+            src="https://s3-us-gov-west-1.amazonaws.com/content.www.va.gov/img/homepage/veterans-banner-desktop-2.png"
             alt="American flag"
-            className="w-full h-48 md:h-64 object-cover"
+            className="w-full h-48 md:h-64 object-cover object-[center_20%]"
           />
         </div>
 
@@ -665,6 +735,18 @@ export function Home() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Benefit Description - Conditionally displayed */}
+            {benefitCategory && benefitCategory !== "all" && benefitInfo[benefitCategory] && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 space-y-3">
+                <h3 className="text-2xl font-bold text-slate-900">
+                  {benefitInfo[benefitCategory].title}
+                </h3>
+                <p className="text-lg text-slate-700 leading-relaxed">
+                  {benefitInfo[benefitCategory].description}
+                </p>
+              </div>
+            )}
 
             {/* Submit Button */}
             <Button
